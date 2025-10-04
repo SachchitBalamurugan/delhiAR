@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AR Model with Delhi AQI Overlay</title>
+<title>AR Model with Delhi AQI Overlay & Urban Planning</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <!-- A-Frame and AR.js -->
@@ -10,127 +10,32 @@
 <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar-nft.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/IdeaSpaceVR/aframe-particle-system-component@1.0.1/dist/aframe-particle-system-component.min.js"></script>
 
-<!-- Leaflet -->
+<!-- Leaflet and Leaflet.heat -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 
 <style>
 body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: sans-serif; }
 a-scene { height: 100%; width: 100%; }
-
-#overlay {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    width: 350px;
-    max-height: 90%;
-    background: rgba(255,255,255,0.9);
-    border-radius: 12px;
-    padding: 10px;
-    overflow-y: auto;
-    z-index: 10;
-}
-
-
-#tutorial {
-    font-size: 14px;
-    line-height: 1.4;
-    margin-bottom: 10px;
-}
-
-
-#map {
-    height: 300px;
-    width: 100%;
-    border-radius: 10px;
-    margin-top: 10px;
-}
-
-#controls {
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: rgba(240,240,240,0.8);
-    padding: 10px;
-    border-radius: 12px;
-    z-index: 10;
-}
-
-button {
-    width: 160px;
-    padding: 8px;
-    margin: 5px;
-    font-size: 14px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    background-color: #007bff;
-    color: white;
-    transition: background 0.2s;
-}
-
+#overlay { position: absolute; top: 10px; left: 10px; width: 350px; max-height: 90%; background: rgba(255,255,255,0.9); border-radius: 12px; padding: 10px; overflow-y: auto; z-index: 10; }
+#tutorial { font-size: 14px; line-height: 1.4; margin-bottom: 10px; }
+#map { height: 300px; width: 100%; border-radius: 10px; margin-top: 10px; }
+#urban-map { height: 300px; width: 100%; border-radius: 10px; margin-top: 10px; }
+#controls { position: absolute; top: 50%; right: 10px; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; background: rgba(240,240,240,0.8); padding: 10px; border-radius: 12px; z-index: 10; }
+button { width: 160px; padding: 8px; margin: 5px; font-size: 14px; border-radius: 6px; border: none; cursor: pointer; background-color: #007bff; color: white; transition: background 0.2s; }
 button:hover { background-color: #0056b3; }
-
-#info-box {
-    margin-top: 10px;
-    background: rgba(0,0,0,0.6);
-    color: white;
-    padding: 6px 10px;
-    border-radius: 6px;
-    font-size: 14px;
-    text-align: center;
-    width: 160px;
-    min-height: 50px;
-    opacity: 0;
-    display: none;
-    transition: opacity 0.5s ease;
-}
-
-#air-quality-text {
-    display: none;
-    font-size: 15px;
-    line-height: 1.5;
-    margin-top: 10px;
-}
-
-#tutorial-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.7);
-    color: white;
-    display: none;
-    z-index: 100;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 20px;
-}
-
-#tutorial-overlay p {
-    font-size: 18px;
-    margin-bottom: 20px;
-}
-
-#tutorial-overlay button {
-    width: 120px;
-    margin: 5px;
-}
-#tutorial-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 20;
-}
-
+#info-box { margin-top: 10px; background: rgba(0,0,0,0.6); color: white; padding: 6px 10px; border-radius: 6px; font-size: 14px; text-align: center; width: 160px; min-height: 50px; opacity: 0; display: none; transition: opacity 0.5s ease; }
+#air-quality-text { display: none; font-size: 15px; line-height: 1.5; margin-top: 10px; }
+#tutorial-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); color: white; display: none; z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
+#tutorial-overlay p { font-size: 18px; margin-bottom: 20px; }
+#tutorial-overlay button { width: 120px; margin: 5px; }
+#tutorial-btn { position: absolute; top: 10px; right: 10px; z-index: 20; }
+#urban-chat { margin-top:10px; font-size:14px; background:#f1f1f1; padding:10px; border-radius:8px; max-height:150px; overflow-y:auto; }
 </style>
+<!-- Add this script in your <head> or before </body> -->
+<script src="https://cdn.jsdelivr.net/npm/@xenova/transformers/dist/transformers.min.js"></script>
+
 </head>
 <body>
 
@@ -165,21 +70,30 @@ button:hover { background-color: #0056b3; }
   <button onclick="setView('disaster')">Disaster Risk</button>
   <button onclick="setView('renewable')">Renewable Energy</button>
   <button onclick="showAirQuality()">Air Quality</button>
+  <button onclick="showUrbanPlanning()">Urban Planning</button>
   <div id="info-box"></div>
 </div>
 
 <div id="overlay">
     <h2>Delhi Air Quality</h2>
-    <div id="map">Loading map...</div>
-    <div id="air-quality-text">
-        <p><strong>Air Quality in Delhi:</strong><br>
-        Delhi faces one of the highest air pollution levels in the world, largely due to vehicular emissions, industrial pollution, and seasonal crop burning. 
-        The Air Quality Index (AQI) often ranges between 200–400 during peak months, categorizing it as “poor” to “very poor.” 
-        Efforts such as the Graded Response Action Plan (GRAP) and the expansion of the Delhi Metro aim to reduce pollution. 
-        Residents are encouraged to use masks and air purifiers, and avoid outdoor activity during high smog periods.</p>
-    </div>
-</div>
+    <div id="map">Loading AQI map...</div>
+    <div id="air-quality-text"></div>
 
+    <h2>Urban Planning Simulator</h2>
+    <div>
+        <label>Transportation: <span id="transport-val">50</span>%</label>
+        <input type="range" id="transport-slider" min="0" max="100" value="50" oninput="updateUrbanMap()">
+        <label>Renewable Energy: <span id="renewable-val">50</span>%</label>
+        <input type="range" id="renewable-slider" min="0" max="100" value="50" oninput="updateUrbanMap()">
+        <label>Green Coverage: <span id="green-val">50</span>%</label>
+        <input type="range" id="green-slider" min="0" max="100" value="50" oninput="updateUrbanMap()">
+    </div>
+    <div style="margin-top:10px;">
+      <button id="submit-urban" onclick="submitUrbanData()">Submit Values</button>
+    </div>
+    <div id="urban-map"></div>
+    <div id="urban-chat"></div>
+</div>
 
 <!-- Tutorial Overlay -->
 <div id="tutorial-overlay">
@@ -189,10 +103,10 @@ button:hover { background-color: #0056b3; }
         <button id="finish-btn" onclick="finishTutorial()" style="display:none;">Finish</button>
     </div>
 </div>
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script>
-let tutorialStep = 0;
 
+<script>
+// ---------------- Tutorial ----------------
+let tutorialStep = 0;
 function startTutorial() {
     tutorialStep = 0;
     document.getElementById('tutorial-overlay').style.display = 'flex';
@@ -200,7 +114,6 @@ function startTutorial() {
     document.getElementById('next-btn').style.display = 'inline-block';
     document.getElementById('finish-btn').style.display = 'none';
 }
-
 function nextTutorial() {
     tutorialStep++;
     if (tutorialStep === 1) {
@@ -209,12 +122,11 @@ function nextTutorial() {
         document.getElementById('finish-btn').style.display = 'inline-block';
     }
 }
-
 function finishTutorial() {
     document.getElementById('tutorial-overlay').style.display = 'none';
 }
-</script>
-<script>
+
+// ---------------- AR Model ----------------
 const model = document.querySelector('#myModel');
 const infoBox = document.querySelector('#info-box');
 const overlay = document.querySelector('#overlay');
@@ -257,175 +169,142 @@ const views = {
 };
 
 function setView(viewName) {
-  if (views[viewName]) {
+  if(views[viewName]){
     const v = views[viewName];
     model.setAttribute('rotation', v.rotation);
     infoBox.textContent = v.info;
-    infoBox.style.display = 'block';
-    infoBox.style.opacity = '1';
-    airQualityText.style.display = 'none';
-    mapDiv.style.display = 'none';
-    document.body.style.backgroundColor = 'white';
+    infoBox.style.display='block';
+    infoBox.style.opacity='1';
+    airQualityText.style.display='none';
+    mapDiv.style.display='none';
+    document.body.style.backgroundColor='white';
   }
 }
 
-
-// Show Air Quality text and reveal AQI map
+// ---------------- Air Quality ----------------
+const cityUrl = `https://api.waqi.info/feed/delhi/?token=312f38a7905aff78272922fdac617772d91fd516`;
 function showAirQuality() {
-  mapDiv.style.display = "block";
-  airQualityText.style.display = "block";
-  infoBox.style.display = "none";
+    mapDiv.style.display="block";
+    airQualityText.style.display="block";
+    infoBox.style.display="none";
 
-  fetch(cityUrl)
-    .then(res => res.json())
-    .then(data => {
-      if (data.status === "ok") {
-        const aqi = data.data.aqi;
-        const city = data.data.city.name;
-        let description = "";
-        let color = "";
+    fetch(cityUrl)
+    .then(res=>res.json())
+    .then(data=>{
+        if(data.status==="ok"){
+            const aqi=data.data.aqi;
+            const city=data.data.city.name;
+            let desc="",color="";
+            if(aqi<=50){desc="Good";color="lightgreen";}
+            else if(aqi<=100){desc="Moderate";color="yellow";}
+            else if(aqi<=150){desc="Unhealthy for Sensitive Groups";color="orange";}
+            else if(aqi<=200){desc="Unhealthy";color="gold";}
+            else if(aqi<=300){desc="Very Unhealthy";color="red";}
+            else{desc="Hazardous";color="darkred";}
+            document.body.style.backgroundColor=color;
+            airQualityText.innerHTML=`<strong>Current Air Quality in ${city}</strong><br>AQI: <strong>${aqi}</strong> (${desc})<br>${getHealthAdvice(aqi)}`;
+            const map=L.map('map').setView([28.6139,77.2090],11);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+            L.marker([28.6139,77.2090]).addTo(map).bindPopup(`<b>Delhi</b><br>AQI:${aqi} (${desc})`).openPopup();
+        }else airQualityText.textContent="Error fetching AQI.";
+    }).catch(()=>{airQualityText.textContent="Error loading AQI data.";});
+}
+function getHealthAdvice(aqi){if(aqi<=50)return"Air quality is satisfactory."; if(aqi<=100)return"Air quality is acceptable for most."; if(aqi<=150)return"Sensitive groups may be affected."; if(aqi<=200)return"Avoid prolonged outdoor activity."; if(aqi<=300)return"Health warnings: avoid outdoor activities."; return"Hazardous: stay indoors.";}
+mapDiv.style.display="none";
 
-        if (aqi <= 50) { description = "Good"; color = "lightgreen"; }
-        else if (aqi <= 100) { description = "Moderate"; color = "yellow"; }
-        else if (aqi <= 150) { description = "Unhealthy for Sensitive Groups"; color = "orange"; }
-        else if (aqi <= 200) { description = "Unhealthy"; color = "gold"; }
-        else if (aqi <= 300) { description = "Very Unhealthy"; color = "red"; }
-        else { description = "Hazardous"; color = "darkred"; }
+// ---------------- Urban Planning ----------------
+let urbanMap, transportHeat, renewableHeat, greenHeat;
+function showUrbanPlanning(){
+    overlay.style.display='block';
+    mapDiv.style.display='none';
+    airQualityText.style.display='none';
+    infoBox.style.display='none';
+    if(!urbanMap){
+        urbanMap=L.map('urban-map').setView([28.6139,77.2090],11);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap contributors'}).addTo(urbanMap);
+        updateUrbanMap();
+    }
+}
+function updateUrbanMap(){
+    const tVal = document.getElementById('transport-slider').value;
+    const rVal = document.getElementById('renewable-slider').value;
+    const gVal = document.getElementById('green-slider').value;
 
-        document.body.style.backgroundColor = color;
+    document.getElementById('transport-val').innerText = tVal;
+    document.getElementById('renewable-val').innerText = rVal;
+    document.getElementById('green-val').innerText = gVal;
 
-        airQualityText.innerHTML = `
-          <strong>Current Air Quality in ${city}</strong><br>
-          AQI: <strong>${aqi}</strong> (${description})<br><br>
-          ${getHealthAdvice(aqi)}
-        `;
+    if (transportHeat) transportHeat.remove();
+    if (renewableHeat) renewableHeat.remove();
+    if (greenHeat) greenHeat.remove();
 
-        const map = L.map('map').setView([28.6139, 77.2090], 11);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
-        L.marker([28.6139, 77.2090])
-          .addTo(map)
-          .bindPopup(`<b>Delhi</b><br>AQI: ${aqi} (${description})`)
-          .openPopup();
-      } else {
-        airQualityText.textContent = "Error fetching air quality data.";
-      }
-    })
-    .catch(() => {
-      airQualityText.textContent = "Error loading air quality data.";
-    });
+    transportHeat = L.heatLayer(generateHeatPoints([28.60,28.65],[77.19,77.23],tVal), {
+        radius: 40,
+        blur: 25,
+        max: 1.0,
+        gradient: {0:'transparent', 0.5:'orange', 1:'red'}
+    }).addTo(urbanMap);
+
+    renewableHeat = L.heatLayer(generateHeatPoints([28.61,28.66],[77.20,77.27],rVal), {
+        radius: 40,
+        blur: 25,
+        max: 1.0,
+        gradient: {0:'transparent', 0.5:'lightyellow', 1:'yellow'}
+    }).addTo(urbanMap);
+
+    greenHeat = L.heatLayer(generateHeatPoints([28.59,28.64],[77.18,77.22],gVal), {
+        radius: 40,
+        blur: 25,
+        max: 1.0,
+        gradient: {0:'transparent', 0.5:'lightgreen', 1:'green'}
+    }).addTo(urbanMap);
 }
 
-// Initially hide the AQI map
-mapDiv.style.display = "none";
-
-// =====================
-// Delhi AQI Map Section
-// =====================
-const token = '312f38a7905aff78272922fdac617772d91fd516';
-const bounds = [28.4,76.9,28.9,77.3];
-const mapUrl = `https://api.waqi.info/map/bounds/?latlng=${bounds.join(',')}&token=${token}`;
-
-fetch(mapUrl)
-  .then(res => res.json())
-  .then(data => {
-      if(data.status === "ok"){
-          const map = L.map('map').setView([28.6139, 77.2090], 11);
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-              attribution: '&copy; OpenStreetMap contributors'
-          }).addTo(map);
-          data.data.forEach(station => {
-              const lat = station.lat;
-              const lon = station.lon;
-              const aqi = station.aqi;
-              const name = station.station.name;
-              const marker = L.marker([lat, lon]).addTo(map);
-              marker.bindPopup(`<strong>${name}</strong><br>AQI: ${aqi}`);
-          });
-      } else {
-          document.getElementById('map').innerHTML = 'Error loading AQI map.';
-      }
-  })
-  .catch(err => {
-      console.error(err);
-      document.getElementById('map').innerHTML = 'Error loading AQI map.';
-  });
-function showAirQuality() {
-  mapDiv.style.display = "block";
-  airQualityText.style.display = "block";
-  infoBox.style.display = "none";
-
-  fetch(cityUrl)
-    .then(res => res.json())
-    .then(data => {
-      if (data.status === "ok") {
-        const aqi = data.data.aqi;
-        const city = data.data.city.name;
-        let description = "";
-        let color = "";
-
-        if (aqi <= 50) { description = "Good"; color = "lightgreen"; }
-        else if (aqi <= 100) { description = "Moderate"; color = "yellow"; }
-        else if (aqi <= 150) { description = "Unhealthy for Sensitive Groups"; color = "orange"; }
-        else if (aqi <= 200) { description = "Unhealthy"; color = "gold"; }
-        else if (aqi <= 300) { description = "Very Unhealthy"; color = "red"; }
-        else { description = "Hazardous"; color = "darkred"; }
-
-        document.body.style.backgroundColor = color;
-
-        airQualityText.innerHTML = `
-          <strong>Current Air Quality in ${city}</strong><br>
-          AQI: <strong>${aqi}</strong> (${description})<br><br>
-          ${getHealthAdvice(aqi)}
-        `;
-
-        const map = L.map('map').setView([28.6139, 77.2090], 11);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
-        L.marker([28.6139, 77.2090])
-          .addTo(map)
-          .bindPopup(`<b>Delhi</b><br>AQI: ${aqi} (${description})`)
-          .openPopup();
-      } else {
-        airQualityText.textContent = "Error fetching air quality data.";
-      }
-    })
-    .catch(() => {
-      airQualityText.textContent = "Error loading air quality data.";
-    });
+function generateHeatPoints(latRange, lonRange, percent){
+    const points = [];
+    const count = Math.floor(percent * 5);
+    for(let i=0; i<count; i++){
+        const lat = Math.random() * (latRange[1] - latRange[0]) + latRange[0];
+        const lon = Math.random() * (lonRange[1] - lonRange[0]) + lonRange[0];
+        const intensity = 0.5 + percent/100;
+        points.push([lat, lon, intensity]);
+    }
+    return points;
 }
 
-function getHealthAdvice(aqi) {
-  if (aqi <= 50) return "Air quality is satisfactory, and air pollution poses little or no risk.";
-  if (aqi <= 100) return "Air quality is acceptable, but there may be concern for sensitive individuals.";
-  if (aqi <= 150) return "Members of sensitive groups may experience health effects. Limit outdoor activity.";
-  if (aqi <= 200) return "Everyone may begin to experience health effects. Avoid prolonged outdoor exertion.";
-  if (aqi <= 300) return "Health warnings of emergency conditions. Avoid outdoor activities.";
-  return "Hazardous conditions. Stay indoors and use air purifiers if possible.";
+// ---------------- Urban Prediction Chat ----------------
+function submitUrbanData(){
+    const tVal = parseInt(document.getElementById('transport-slider').value);
+    const rVal = parseInt(document.getElementById('renewable-slider').value);
+    const gVal = parseInt(document.getElementById('green-slider').value);
+
+    const chatDiv = document.getElementById('urban-chat');
+    chatDiv.innerHTML += `<div><b>You:</b> Transport ${tVal}%, Renewable ${rVal}%, Green ${gVal}%</div>`;
+    chatDiv.scrollTop = chatDiv.scrollHeight;
+
+    // Simple logic-based suggestions
+    let suggestion = '';
+    if(tVal > 70) suggestion += 'High transport coverage may increase congestion. ';
+    if(rVal < 40) suggestion += 'Renewable energy is low, emissions could rise. ';
+    if(gVal < 30) suggestion += 'Green coverage is low, urban heat may increase. ';
+    if(tVal<=70 && rVal>=40 && gVal>=30) suggestion += 'Balanced urban planning: good traffic and environmental sustainability.';
+
+    chatDiv.innerHTML += `<div><b>Advisor:</b> ${suggestion}</div>`;
+    chatDiv.scrollTop = chatDiv.scrollHeight;
 }
 
-// Hide map initially
-mapDiv.style.display = "none";
-
-// =====================
-// Scale Model to Fit Screen
-// =====================
-model.addEventListener('model-loaded', () => {
-    const mesh = model.getObject3D('mesh');
-    if (!mesh) return;
-
-    const box = new THREE.Box3().setFromObject(mesh);
-    const size = box.getSize(new THREE.Vector3());
-    const maxDimension = Math.max(size.x, size.y, size.z);
-    const targetSize = 2.5;
-    const scaleFactor = targetSize / maxDimension;
-
-    model.setAttribute('scale', `${scaleFactor} ${scaleFactor} ${scaleFactor}`);
-
-    const center = box.getCenter(new THREE.Vector3());
-    model.object3D.position.y -= center.y * scaleFactor - 1.5;
+// ---------------- Model Scaling ----------------
+model.addEventListener('model-loaded',()=>{
+    const mesh=model.getObject3D('mesh');
+    if(!mesh) return;
+    const box=new THREE.Box3().setFromObject(mesh);
+    const size=box.getSize(new THREE.Vector3());
+    const maxDimension=Math.max(size.x,size.y,size.z);
+    const targetSize=2.5;
+    const scaleFactor=targetSize/maxDimension;
+    model.setAttribute('scale',`${scaleFactor} ${scaleFactor} ${scaleFactor}`);
+    const center=box.getCenter(new THREE.Vector3());
+    model.object3D.position.y-=center.y*scaleFactor-1.5;
 });
 </script>
 </body>
