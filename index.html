@@ -17,7 +17,6 @@
 body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: sans-serif; }
 a-scene { height: 100%; width: 100%; }
 
-/* Overlay panel */
 #overlay {
     position: absolute;
     top: 10px;
@@ -38,7 +37,6 @@ a-scene { height: 100%; width: 100%; }
     margin-top: 10px;
 }
 
-/* AR controls */
 #controls {
     position: absolute;
     top: 50%;
@@ -78,15 +76,22 @@ button:hover { background-color: #0056b3; }
     text-align: center;
     width: 160px;
     min-height: 50px;
+    opacity: 0;
+    display: none;
+    transition: opacity 0.5s ease;
+}
+
+#air-quality-text {
+    display: none;
+    font-size: 15px;
+    line-height: 1.5;
+    margin-top: 10px;
 }
 </style>
 </head>
 <body>
 
-<!-- AR Scene -->
 <a-scene
-
-
     vr-mode-ui="enabled: false"
     embedded
     renderer="logarithmicDepthBuffer: true;"
@@ -101,15 +106,9 @@ button:hover { background-color: #0056b3; }
           rotation="0 180 0">
     </a-entity>
 
-
-
-
     <a-camera></a-camera>
 </a-scene>
 
-
-
-<!-- AR Controls -->
 <div id="controls">
   <button onclick="setView('land')">Land Use & Zoning</button>
   <button onclick="setView('transport')">Transport & Traffic</button>
@@ -119,20 +118,29 @@ button:hover { background-color: #0056b3; }
   <button onclick="setView('public')">Public Services</button>
   <button onclick="setView('disaster')">Disaster Risk</button>
   <button onclick="setView('renewable')">Renewable Energy</button>
-  <div id="info-box">Click a button to view info.</div>
+  <button onclick="showAirQuality()">Air Quality</button>
+  <div id="info-box"></div>
 </div>
 
-<!-- Overlay for AQI -->
 <div id="overlay">
     <h2>Delhi Air Quality</h2>
     <div id="map">Loading map...</div>
+    <div id="air-quality-text">
+        <p><strong>Air Quality in Delhi:</strong><br>
+        Delhi faces one of the highest air pollution levels in the world, largely due to vehicular emissions, industrial pollution, and seasonal crop burning. 
+        The Air Quality Index (AQI) often ranges between 200–400 during peak months, categorizing it as “poor” to “very poor.” 
+        Efforts such as the Graded Response Action Plan (GRAP) and the expansion of the Delhi Metro aim to reduce pollution. 
+        Residents are encouraged to use masks and air purifiers, and avoid outdoor activity during high smog periods.</p>
+    </div>
 </div>
 
-<!-- Scripts -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
 const model = document.querySelector('#myModel');
 const infoBox = document.querySelector('#info-box');
+const overlay = document.querySelector('#overlay');
+const mapDiv = document.querySelector('#map');
+const airQualityText = document.querySelector('#air-quality-text');
 
 const views = {
   land: {
@@ -169,21 +177,74 @@ const views = {
   }
 };
 
-
 function setView(viewName) {
-  if(views[viewName]){
+  if (views[viewName]) {
     const v = views[viewName];
     model.setAttribute('rotation', v.rotation);
     infoBox.textContent = v.info;
+    infoBox.style.display = 'block';
+    infoBox.style.opacity = '1';
+    airQualityText.style.display = 'none';
+    mapDiv.style.display = 'none';
+    document.body.style.backgroundColor = 'white';
   }
 }
+
+
+// Show Air Quality text and reveal AQI map
+function showAirQuality() {
+  mapDiv.style.display = "block";
+  airQualityText.style.display = "block";
+  infoBox.style.display = "none";
+
+  fetch(cityUrl)
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "ok") {
+        const aqi = data.data.aqi;
+        const city = data.data.city.name;
+        let description = "";
+        let color = "";
+
+        if (aqi <= 50) { description = "Good"; color = "lightgreen"; }
+        else if (aqi <= 100) { description = "Moderate"; color = "yellow"; }
+        else if (aqi <= 150) { description = "Unhealthy for Sensitive Groups"; color = "orange"; }
+        else if (aqi <= 200) { description = "Unhealthy"; color = "gold"; }
+        else if (aqi <= 300) { description = "Very Unhealthy"; color = "red"; }
+        else { description = "Hazardous"; color = "darkred"; }
+
+        document.body.style.backgroundColor = color;
+
+        airQualityText.innerHTML = `
+          <strong>Current Air Quality in ${city}</strong><br>
+          AQI: <strong>${aqi}</strong> (${description})<br><br>
+          ${getHealthAdvice(aqi)}
+        `;
+
+        const map = L.map('map').setView([28.6139, 77.2090], 11);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+        L.marker([28.6139, 77.2090])
+          .addTo(map)
+          .bindPopup(`<b>Delhi</b><br>AQI: ${aqi} (${description})`)
+          .openPopup();
+      } else {
+        airQualityText.textContent = "Error fetching air quality data.";
+      }
+    })
+    .catch(() => {
+      airQualityText.textContent = "Error loading air quality data.";
+    });
+}
+
+// Initially hide the AQI map
+mapDiv.style.display = "none";
 
 // =====================
 // Delhi AQI Map Section
 // =====================
 const token = '312f38a7905aff78272922fdac617772d91fd516';
-
-// Bounding box for Delhi: lat_min, lon_min, lat_max, lon_max
 const bounds = [28.4,76.9,28.9,77.3];
 const mapUrl = `https://api.waqi.info/map/bounds/?latlng=${bounds.join(',')}&token=${token}`;
 
@@ -192,11 +253,9 @@ fetch(mapUrl)
   .then(data => {
       if(data.status === "ok"){
           const map = L.map('map').setView([28.6139, 77.2090], 11);
-
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
               attribution: '&copy; OpenStreetMap contributors'
           }).addTo(map);
-
           data.data.forEach(station => {
               const lat = station.lat;
               const lon = station.lon;
@@ -213,6 +272,63 @@ fetch(mapUrl)
       console.error(err);
       document.getElementById('map').innerHTML = 'Error loading AQI map.';
   });
+function showAirQuality() {
+  mapDiv.style.display = "block";
+  airQualityText.style.display = "block";
+  infoBox.style.display = "none";
+
+  fetch(cityUrl)
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "ok") {
+        const aqi = data.data.aqi;
+        const city = data.data.city.name;
+        let description = "";
+        let color = "";
+
+        if (aqi <= 50) { description = "Good"; color = "lightgreen"; }
+        else if (aqi <= 100) { description = "Moderate"; color = "yellow"; }
+        else if (aqi <= 150) { description = "Unhealthy for Sensitive Groups"; color = "orange"; }
+        else if (aqi <= 200) { description = "Unhealthy"; color = "gold"; }
+        else if (aqi <= 300) { description = "Very Unhealthy"; color = "red"; }
+        else { description = "Hazardous"; color = "darkred"; }
+
+        document.body.style.backgroundColor = color;
+
+        airQualityText.innerHTML = `
+          <strong>Current Air Quality in ${city}</strong><br>
+          AQI: <strong>${aqi}</strong> (${description})<br><br>
+          ${getHealthAdvice(aqi)}
+        `;
+
+        const map = L.map('map').setView([28.6139, 77.2090], 11);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+        L.marker([28.6139, 77.2090])
+          .addTo(map)
+          .bindPopup(`<b>Delhi</b><br>AQI: ${aqi} (${description})`)
+          .openPopup();
+      } else {
+        airQualityText.textContent = "Error fetching air quality data.";
+      }
+    })
+    .catch(() => {
+      airQualityText.textContent = "Error loading air quality data.";
+    });
+}
+
+function getHealthAdvice(aqi) {
+  if (aqi <= 50) return "Air quality is satisfactory, and air pollution poses little or no risk.";
+  if (aqi <= 100) return "Air quality is acceptable, but there may be concern for sensitive individuals.";
+  if (aqi <= 150) return "Members of sensitive groups may experience health effects. Limit outdoor activity.";
+  if (aqi <= 200) return "Everyone may begin to experience health effects. Avoid prolonged outdoor exertion.";
+  if (aqi <= 300) return "Health warnings of emergency conditions. Avoid outdoor activities.";
+  return "Hazardous conditions. Stay indoors and use air purifiers if possible.";
+}
+
+// Hide map initially
+mapDiv.style.display = "none";
 
 // =====================
 // Scale Model to Fit Screen
@@ -233,6 +349,5 @@ model.addEventListener('model-loaded', () => {
     model.object3D.position.y -= center.y * scaleFactor - 1.5;
 });
 </script>
-
 </body>
 </html>
