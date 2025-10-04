@@ -18,24 +18,105 @@
 <style>
 body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: sans-serif; }
 a-scene { height: 100%; width: 100%; }
-#overlay { position: absolute; top: 10px; left: 10px; width: 350px; max-height: 90%; background: rgba(255,255,255,0.9); border-radius: 12px; padding: 10px; overflow-y: auto; z-index: 10; }
-#tutorial { font-size: 14px; line-height: 1.4; margin-bottom: 10px; }
-#map { height: 300px; width: 100%; border-radius: 10px; margin-top: 10px; }
-#urban-map { height: 300px; width: 100%; border-radius: 10px; margin-top: 10px; }
-#controls { position: absolute; top: 50%; right: 10px; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; background: rgba(240,240,240,0.8); padding: 10px; border-radius: 12px; z-index: 10; }
-button { width: 160px; padding: 8px; margin: 5px; font-size: 14px; border-radius: 6px; border: none; cursor: pointer; background-color: #007bff; color: white; transition: background 0.2s; }
-button:hover { background-color: #0056b3; }
-#info-box { margin-top: 10px; background: rgba(0,0,0,0.6); color: white; padding: 6px 10px; border-radius: 6px; font-size: 14px; text-align: center; width: 160px; min-height: 50px; opacity: 0; display: none; transition: opacity 0.5s ease; }
-#air-quality-text { display: none; font-size: 15px; line-height: 1.5; margin-top: 10px; }
-#tutorial-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); color: white; display: none; z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
-#tutorial-overlay p { font-size: 18px; margin-bottom: 20px; }
-#tutorial-overlay button { width: 120px; margin: 5px; }
-#tutorial-btn { position: absolute; top: 10px; right: 10px; z-index: 20; }
-#urban-chat { margin-top:10px; font-size:14px; background:#f1f1f1; padding:10px; border-radius:8px; max-height:150px; overflow-y:auto; }
-</style>
-<!-- Add this script in your <head> or before </body> -->
-<script src="https://cdn.jsdelivr.net/npm/@xenova/transformers/dist/transformers.min.js"></script>
 
+/* Overlay adjustments for mobile */
+#overlay { 
+    position: absolute; 
+    top: 10px; 
+    left: 10px; 
+    width: 90%; 
+    max-width: 400px; 
+    max-height: 85%; 
+    background: rgba(255,255,255,0.95); 
+    border-radius: 12px; 
+    padding: 10px; 
+    overflow-y: auto; 
+    z-index: 10; 
+    font-size: 14px;
+}
+#tutorial { font-size: 14px; line-height: 1.4; margin-bottom: 10px; }
+#map, #urban-map { 
+    height: 250px; 
+    width: 100%; 
+    border-radius: 10px; 
+    margin-top: 10px; 
+}
+
+/* Controls panel adjustments */
+#controls { 
+    position: absolute; 
+    top: 50%; 
+    right: 5px; 
+    transform: translateY(-50%); 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    background: rgba(240,240,240,0.85); 
+    padding: 8px; 
+    border-radius: 12px; 
+    z-index: 10; 
+    max-height: 90%;
+    overflow-y: auto;
+}
+button { 
+    width: 140px; 
+    padding: 8px; 
+    margin: 4px; 
+    font-size: 13px; 
+    border-radius: 6px; 
+    border: none; 
+    cursor: pointer; 
+    background-color: #007bff; 
+    color: white; 
+    transition: background 0.2s; 
+}
+button:hover { background-color: #0056b3; }
+
+#info-box { 
+    margin-top: 10px; 
+    background: rgba(0,0,0,0.6); 
+    color: white; 
+    padding: 6px 10px; 
+    border-radius: 6px; 
+    font-size: 13px; 
+    text-align: center; 
+    width: 140px; 
+    min-height: 50px; 
+    opacity: 0; 
+    display: none; 
+    transition: opacity 0.5s ease; 
+}
+#air-quality-text { display: none; font-size: 14px; line-height: 1.4; margin-top: 8px; }
+#tutorial-overlay { 
+    position: fixed; 
+    top: 0; left: 0; 
+    width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.7); 
+    color: white; 
+    display: none; 
+    z-index: 100; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center; 
+    text-align: center; 
+    padding: 20px; 
+}
+#tutorial-overlay p { font-size: 16px; margin-bottom: 20px; }
+#tutorial-overlay button { width: 110px; margin: 5px; font-size: 14px; }
+#tutorial-btn { position: absolute; top: 10px; right: 10px; z-index: 20; }
+#urban-chat { margin-top:10px; font-size:13px; background:#f1f1f1; padding:8px; border-radius:8px; max-height:120px; overflow-y:auto; }
+
+/* Small screen adjustments */
+@media (max-width: 600px){
+    #controls { right: 2px; max-height: 70%; }
+    button { width: 120px; font-size: 12px; }
+    #info-box { width: 120px; font-size: 12px; }
+    #overlay { top: 5px; left: 5px; width: 95%; padding: 8px; }
+    #map, #urban-map { height: 220px; }
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@xenova/transformers/dist/transformers.min.js"></script>
 </head>
 <body>
 
@@ -134,40 +215,15 @@ const mapDiv = document.querySelector('#map');
 const airQualityText = document.querySelector('#air-quality-text');
 
 const views = {
-  land: {
-    rotation: {x:0, y:180, z:0},
-    info: "Land Use & Zoning: Delhi has ~1,484 km² urban area. The city is divided into residential, commercial, industrial, and green zones. Central Delhi and South Delhi are mostly residential and commercial, while Rohini and Okhla host industrial zones."
-  },
-  transport: {
-    rotation: {x:0, y:90, z:0},
-    info: "Transport & Traffic: Delhi has 11 metro lines (Delhi Metro), ~14,000 km of roads, and over 10 million registered vehicles. Main traffic congestion occurs in Connaught Place, Karol Bagh, and Ring Road corridors."
-  },
-  population: {
-    rotation: {x:0, y:270, z:0},
-    info: "Population Density: Delhi has ~20 million residents (2023), making it one of the densest cities in the world (~11,000 people/km²). North and East Delhi have the highest population density."
-  },
-  industry: {
-    rotation: {x:0, y:0, z:0},
-    info: "Industrial & Economic Hubs: Key hubs include Okhla Industrial Area, Mayapuri, Patparganj, and Gurgaon (NCR). Major sectors: IT, manufacturing, textiles, and pharmaceuticals."
-  },
-  health: {
-    rotation: {x:0, y:45, z:0},
-    info: "Health & Education: Delhi has 250+ hospitals including AIIMS, Safdarjung, and Fortis. Education institutions include Delhi University, Jawaharlal Nehru University, and over 1,500 schools."
-  },
-  public: {
-    rotation: {x:0, y:135, z:0},
-    info: "Public Services & Infrastructure: Delhi is served by MCD and DDA utilities, over 1,000 police stations, metro and bus networks, 10+ wastewater treatment plants, and robust civic infrastructure."
-  },
-  disaster: {
-    rotation: {x:0, y:225, z:0},
-    info: "Disaster Risk & Resilience: Delhi is moderately prone to earthquakes (Zone IV), floods along Yamuna, and heatwaves. Disaster management is coordinated by the Delhi Disaster Management Authority (DDMA)."
-  },
-  renewable: {
-    rotation: {x:0, y:315, z:0},
-    info: "Renewable Energy & Sustainability: Delhi has 230 MW solar power installations (rooftops & parks) and several EV charging stations. Solar water heating and energy efficiency programs are ongoing in residential and commercial areas."
-  }
+  land: { rotation: {x:0, y:180, z:0}, info: "Land Use & Zoning: Delhi has ~1,484 km² urban area..."},
+  transport: { rotation: {x:0, y:90, z:0}, info: "Transport & Traffic: Delhi has 11 metro lines..."},
+  population: { rotation: {x:0, y:270, z:0}, info: "Population Density: Delhi has ~20 million residents..."},
+  industry: { rotation: {x:0, y:0, z:0}, info: "Industrial & Economic Hubs: Key hubs include Okhla..."},
+  health: { rotation: {x:0, y:45, z:0}, info: "Health & Education: Delhi has 250+ hospitals..."},
+  public: { rotation: {x:0, y:135, z:0}, info: "Public Services & Infrastructure: Delhi is served by..."},
+  disaster: { rotation: {x:0, y:225, z:0}, info: "Disaster Risk & Resilience: Delhi is moderately prone..."},
+  renewable: { rotation: {x:0, y:315, z:0}, info: "Renewable Energy & Sustainability: Delhi has 230 MW..."}
 };
-
 function setView(viewName) {
   if(views[viewName]){
     const v = views[viewName];
@@ -239,24 +295,15 @@ function updateUrbanMap(){
     if (greenHeat) greenHeat.remove();
 
     transportHeat = L.heatLayer(generateHeatPoints([28.60,28.65],[77.19,77.23],tVal), {
-        radius: 40,
-        blur: 25,
-        max: 1.0,
-        gradient: {0:'transparent', 0.5:'orange', 1:'red'}
+        radius: 40, blur: 25, max: 1.0, gradient: {0:'transparent', 0.5:'orange', 1:'red'}
     }).addTo(urbanMap);
 
     renewableHeat = L.heatLayer(generateHeatPoints([28.61,28.66],[77.20,77.27],rVal), {
-        radius: 40,
-        blur: 25,
-        max: 1.0,
-        gradient: {0:'transparent', 0.5:'lightyellow', 1:'yellow'}
+        radius: 40, blur: 25, max: 1.0, gradient: {0:'transparent', 0.5:'lightyellow', 1:'yellow'}
     }).addTo(urbanMap);
 
     greenHeat = L.heatLayer(generateHeatPoints([28.59,28.64],[77.18,77.22],gVal), {
-        radius: 40,
-        blur: 25,
-        max: 1.0,
-        gradient: {0:'transparent', 0.5:'lightgreen', 1:'green'}
+        radius: 40, blur: 25, max: 1.0, gradient: {0:'transparent', 0.5:'lightgreen', 1:'green'}
     }).addTo(urbanMap);
 }
 
@@ -282,7 +329,6 @@ function submitUrbanData(){
     chatDiv.innerHTML += `<div><b>You:</b> Transport ${tVal}%, Renewable ${rVal}%, Green ${gVal}%</div>`;
     chatDiv.scrollTop = chatDiv.scrollHeight;
 
-    // Simple logic-based suggestions
     let suggestion = '';
     if(tVal > 70) suggestion += 'High transport coverage may increase congestion. ';
     if(rVal < 40) suggestion += 'Renewable energy is low, emissions could rise. ';
