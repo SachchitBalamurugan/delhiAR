@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AR Model with Delhi AQI Overlay</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- A-Frame and AR.js -->
+<script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar-nft.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/IdeaSpaceVR/aframe-particle-system-component@1.0.1/dist/aframe-particle-system-component.min.js"></script>
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+<style>
+body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: sans-serif; }
+a-scene { height: 100%; width: 100%; }
+
+/* Overlay panel */
+#overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 350px;
+    max-height: 90%;
+    background: rgba(255,255,255,0.9);
+    border-radius: 12px;
+    padding: 10px;
+    overflow-y: auto;
+    z-index: 10;
+}
+
+#map {
+    height: 300px;
+    width: 100%;
+    border-radius: 10px;
+    margin-top: 10px;
+}
+
+/* AR controls */
+#controls {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(240,240,240,0.8);
+    padding: 10px;
+    border-radius: 12px;
+    z-index: 10;
+}
+
+button {
+    width: 160px;
+    padding: 8px;
+    margin: 5px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+    transition: background 0.2s;
+}
+
+button:hover { background-color: #0056b3; }
+
+#info-box {
+    margin-top: 10px;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: center;
+    width: 160px;
+    min-height: 50px;
+}
+</style>
+</head>
+<body>
+
+<!-- AR Scene -->
+<a-scene
+
+
+    vr-mode-ui="enabled: false"
+    embedded
+    renderer="logarithmicDepthBuffer: true;"
+    arjs="sourceType: webcam; debugUIEnabled: false; trackingMethod: best;">
+
+    <a-light type="ambient" intensity="1"></a-light>
+    <a-light type="directional" intensity="0.8" position="1 1 1"></a-light>
+
+    <a-entity id="myModel"
+          gltf-model="url(models/d.glb)"
+          position="0 0 -2"
+          rotation="0 180 0">
+    </a-entity>
+
+
+
+
+    <a-camera></a-camera>
+</a-scene>
+
+
+
+<!-- AR Controls -->
+<div id="controls">
+  <button onclick="setView('land')">Land Use & Zoning</button>
+  <button onclick="setView('transport')">Transport & Traffic</button>
+  <button onclick="setView('population')">Population Density</button>
+  <button onclick="setView('industry')">Industrial & Economic Hubs</button>
+  <button onclick="setView('health')">Health & Education</button>
+  <button onclick="setView('public')">Public Services</button>
+  <button onclick="setView('disaster')">Disaster Risk</button>
+  <button onclick="setView('renewable')">Renewable Energy</button>
+  <div id="info-box">Click a button to view info.</div>
+</div>
+
+<!-- Overlay for AQI -->
+<div id="overlay">
+    <h2>Delhi Air Quality</h2>
+    <div id="map">Loading map...</div>
+</div>
+
+<!-- Scripts -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+const model = document.querySelector('#myModel');
+const infoBox = document.querySelector('#info-box');
+
+const views = {
+  land: {
+    rotation: {x:0, y:180, z:0},
+    info: "Land Use & Zoning: Delhi has ~1,484 km² urban area. The city is divided into residential, commercial, industrial, and green zones. Central Delhi and South Delhi are mostly residential and commercial, while Rohini and Okhla host industrial zones."
+  },
+  transport: {
+    rotation: {x:0, y:90, z:0},
+    info: "Transport & Traffic: Delhi has 11 metro lines (Delhi Metro), ~14,000 km of roads, and over 10 million registered vehicles. Main traffic congestion occurs in Connaught Place, Karol Bagh, and Ring Road corridors."
+  },
+  population: {
+    rotation: {x:0, y:270, z:0},
+    info: "Population Density: Delhi has ~20 million residents (2023), making it one of the densest cities in the world (~11,000 people/km²). North and East Delhi have the highest population density."
+  },
+  industry: {
+    rotation: {x:0, y:0, z:0},
+    info: "Industrial & Economic Hubs: Key hubs include Okhla Industrial Area, Mayapuri, Patparganj, and Gurgaon (NCR). Major sectors: IT, manufacturing, textiles, and pharmaceuticals."
+  },
+  health: {
+    rotation: {x:0, y:45, z:0},
+    info: "Health & Education: Delhi has 250+ hospitals including AIIMS, Safdarjung, and Fortis. Education institutions include Delhi University, Jawaharlal Nehru University, and over 1,500 schools."
+  },
+  public: {
+    rotation: {x:0, y:135, z:0},
+    info: "Public Services & Infrastructure: Delhi is served by MCD and DDA utilities, over 1,000 police stations, metro and bus networks, 10+ wastewater treatment plants, and robust civic infrastructure."
+  },
+  disaster: {
+    rotation: {x:0, y:225, z:0},
+    info: "Disaster Risk & Resilience: Delhi is moderately prone to earthquakes (Zone IV), floods along Yamuna, and heatwaves. Disaster management is coordinated by the Delhi Disaster Management Authority (DDMA)."
+  },
+  renewable: {
+    rotation: {x:0, y:315, z:0},
+    info: "Renewable Energy & Sustainability: Delhi has 230 MW solar power installations (rooftops & parks) and several EV charging stations. Solar water heating and energy efficiency programs are ongoing in residential and commercial areas."
+  }
+};
+
+
+function setView(viewName) {
+  if(views[viewName]){
+    const v = views[viewName];
+    model.setAttribute('rotation', v.rotation);
+    infoBox.textContent = v.info;
+  }
+}
+
+// =====================
+// Delhi AQI Map Section
+// =====================
+const token = '312f38a7905aff78272922fdac617772d91fd516';
+
+// Bounding box for Delhi: lat_min, lon_min, lat_max, lon_max
+const bounds = [28.4,76.9,28.9,77.3];
+const mapUrl = `https://api.waqi.info/map/bounds/?latlng=${bounds.join(',')}&token=${token}`;
+
+fetch(mapUrl)
+  .then(res => res.json())
+  .then(data => {
+      if(data.status === "ok"){
+          const map = L.map('map').setView([28.6139, 77.2090], 11);
+
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '&copy; OpenStreetMap contributors'
+          }).addTo(map);
+
+          data.data.forEach(station => {
+              const lat = station.lat;
+              const lon = station.lon;
+              const aqi = station.aqi;
+              const name = station.station.name;
+              const marker = L.marker([lat, lon]).addTo(map);
+              marker.bindPopup(`<strong>${name}</strong><br>AQI: ${aqi}`);
+          });
+      } else {
+          document.getElementById('map').innerHTML = 'Error loading AQI map.';
+      }
+  })
+  .catch(err => {
+      console.error(err);
+      document.getElementById('map').innerHTML = 'Error loading AQI map.';
+  });
+
+// =====================
+// Scale Model to Fit Screen
+// =====================
+model.addEventListener('model-loaded', () => {
+    const mesh = model.getObject3D('mesh');
+    if (!mesh) return;
+
+    const box = new THREE.Box3().setFromObject(mesh);
+    const size = box.getSize(new THREE.Vector3());
+    const maxDimension = Math.max(size.x, size.y, size.z);
+    const targetSize = 2.5;
+    const scaleFactor = targetSize / maxDimension;
+
+    model.setAttribute('scale', `${scaleFactor} ${scaleFactor} ${scaleFactor}`);
+
+    const center = box.getCenter(new THREE.Vector3());
+    model.object3D.position.y -= center.y * scaleFactor - 1.5;
+});
+</script>
+
+</body>
+</html>
