@@ -106,6 +106,41 @@ button:hover { background-color: #0056b3; }
     </div>
 </div>
 
+<div id="view-toggle" style="
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 20;
+">
+    <button id="btn-2d" style="background-color: red; color: white; margin-bottom: 5px;" onclick="switchTo2D()">2D Version</button>
+    <button id="btn-3d" style="background-color: red; color: white;" onclick="switchTo3D()">3D Version</button>
+</div>
+
+
+<!-- Placeholder image for 2D -->
+<img id="model-2d" src="models/delhi.png" alt="Delhi Map 2D" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 100%; object-fit: contain; display: none; z-index: 5;">
+
+
+<script>
+  function switchTo2D() {
+    // Hide 3D model
+    model.setAttribute('visible', 'false');
+    // Show 2D image
+    document.getElementById('model-2d').style.display = 'block';
+}
+
+function switchTo3D() {
+    // Show 3D model
+    model.setAttribute('visible', 'true');
+    // Hide 2D image
+    document.getElementById('model-2d').style.display = 'none';
+}
+
+</script>
 <script>
 // ---------------- Tutorial ----------------
 let tutorialStep = 0;
@@ -308,6 +343,9 @@ model.addEventListener('model-loaded',()=>{
     const center=box.getCenter(new THREE.Vector3());
     model.object3D.position.y-=center.y*scaleFactor-1.5;
 });
+
+
+
 </script>
 </body>
 </html>
